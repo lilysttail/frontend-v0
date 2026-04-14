@@ -42,7 +42,10 @@ export default function Launcher() {
             )}
 
             {/* 门口纸条 */}
-            <DoorNote doorNote={startup.door_note} />
+            <DoorNote
+              doorNote={startup.door_note}
+              onSaved={(content) => setStartup(s => ({ ...s, door_note: content }))}
+            />
 
             {/* 最近经历 */}
             {startup.recent_memories?.length > 0 && (

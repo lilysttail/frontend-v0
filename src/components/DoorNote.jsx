@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { writeDoorNote } from '../api.js'
 
-export default function DoorNote({ doorNote }) {
+export default function DoorNote({ doorNote, onSaved }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
@@ -19,6 +19,7 @@ export default function DoorNote({ doorNote }) {
       await writeDoorNote(draft)
       setSaved(true)
       setEditing(false)
+      onSaved?.(draft)
     } catch {
       // 失败静默，不弹错误
     } finally {
