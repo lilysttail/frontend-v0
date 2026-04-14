@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { writeDoorNote } from '../api.js'
 
 export default function DoorNote({ doorNote, onSaved }) {
@@ -6,9 +6,15 @@ export default function DoorNote({ doorNote, onSaved }) {
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [current, setCurrent] = useState(doorNote)
+
+  // 首次从 startup 拿到纸条内容时同步
+  useEffect(() => {
+    if (doorNote !== undefined) setCurrent(doorNote)
+  }, [doorNote])
 
   function startEdit() {
-    setDraft(doorNote || '')
+    setDraft(current || '')
     setEditing(true)
     setSaved(false)
   }
@@ -17,6 +23,7 @@ export default function DoorNote({ doorNote, onSaved }) {
     setSaving(true)
     try {
       await writeDoorNote(draft)
+      setCurrent(draft)
       setSaved(true)
       setEditing(false)
       onSaved?.(draft)
@@ -36,8 +43,8 @@ export default function DoorNote({ doorNote, onSaved }) {
           onClick={startEdit}
           className="cursor-pointer rounded border border-white/10 px-4 py-3 hover:border-white/20 transition-colors group"
         >
-          {doorNote ? (
-            <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">{doorNote}</p>
+          {current ? (
+            <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">{current}</p>
           ) : (
             <p className="text-white/20 text-sm italic">还没有纸条，点击留一张</p>
           )}
