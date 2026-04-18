@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 export default function Sidebar({ startup, loading }) {
   return (
@@ -40,10 +40,21 @@ export default function Sidebar({ startup, loading }) {
 }
 
 function Block({ title, children }) {
+  const [expanded, setExpanded] = useState(false)
   return (
     <div>
-      <p className="text-white/20 text-xs tracking-widest mb-1.5">{title}</p>
-      <p className="text-white/45 text-xs leading-relaxed line-clamp-6">{children}</p>
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-white/20 text-xs tracking-widest">{title}</p>
+        <button
+          onClick={() => setExpanded(v => !v)}
+          className="text-white/15 text-xs hover:text-white/35 transition-colors"
+        >
+          {expanded ? '收' : '展'}
+        </button>
+      </div>
+      <p className={`text-white/45 text-xs leading-relaxed ${expanded ? '' : 'line-clamp-6'}`}>
+        {children}
+      </p>
     </div>
   )
 }

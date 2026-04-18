@@ -1,29 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { searchMemory, getMemoryPage } from '../api.js'
+import { searchMemory } from '../api.js'
 
 function MemoryCard({ item }) {
   const [expanded, setExpanded] = useState(false)
-  const [fullContent, setFullContent] = useState(null)
-  const [loadingFull, setLoadingFull] = useState(false)
 
-  async function toggle() {
-    if (expanded) {
-      setExpanded(false)
-      return
-    }
-    if (!fullContent) {
-      setLoadingFull(true)
-      try {
-        const data = await getMemoryPage(item.id)
-        setFullContent(data.content || '（无内容）')
-      } catch {
-        setFullContent('（加载失败）')
-      } finally {
-        setLoadingFull(false)
-      }
-    }
-    setExpanded(true)
+  function toggle() {
+    setExpanded(v => !v)
   }
+
+  const displayContent = item.full_content || item.excerpt || '（无内容）'
 
   const dateStr = (item.last_edited_time || item.created_time || '').slice(0, 10)
 
@@ -47,11 +32,7 @@ function MemoryCard({ item }) {
 
       {expanded && (
         <div className="mt-3 pt-3 border-t border-white/8">
-          {loadingFull ? (
-            <p className="text-white/25 text-xs">加载中…</p>
-          ) : (
-            <p className="text-white/60 text-sm whitespace-pre-wrap leading-relaxed">{fullContent}</p>
-          )}
+          <p className="text-white/60 text-sm whitespace-pre-wrap leading-relaxed">{displayContent}</p>
         </div>
       )}
     </div>
