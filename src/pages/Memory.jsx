@@ -1,21 +1,89 @@
-import React, { useState } from 'react'
-import { searchMemory } from '../api.js'
+import React, { useState, useEffect } from 'react'
+import { searchMemory, getMemoryPage } from '../api.js'
+
+function MemoryCard({ item }) {
+  const [expanded, setExpanded] = useState(false)
+  const [fullContent, setFullContent] = useState(null)
+  const [loadingFull, setLoadingFull] = useState(false)
+
+  async function toggle() {
+    if (expanded) {
+      setExpanded(false)
+      return
+    }
+    if (!fullContent) {
+      setLoadingFull(true)
+      try {
+        const data = await getMemoryPage(item.id)
+        setFullContent(data.content || '（无内容）')
+      } catch {
+        setFullContent('（加载失败）')
+      } finally {
+        setLoadingFull(false)
+      }
+    }
+    setExpanded(true)
+  }
+
+  const dateStr = (item.last_edited_time || item.created_time || '').slice(0, 10)
+
+  return (
+    <div
+      className="border border-white/8 rounded px-4 py-3 cursor-pointer hover:border-white/18 transition-colors"
+      onClick={toggle}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-white/70 text-sm font-medium leading-snug">{item.title}</p>
+        <span className="text-white/20 text-xs shrink-0 mt-0.5">{expanded ? '收起' : '展开'}</span>
+      </div>
+
+      {item.excerpt && !expanded && (
+        <p className="text-white/35 text-xs mt-1.5 line-clamp-2 leading-relaxed">{item.excerpt}</p>
+      )}
+
+      {dateStr && (
+        <p className="text-white/18 text-xs mt-1.5">{dateStr}</p>
+      )}
+
+      {expanded && (
+        <div className="mt-3 pt-3 border-t border-white/8">
+          {loadingFull ? (
+            <p className="text-white/25 text-xs">加载中…</p>
+          ) : (
+            <p className="text-white/60 text-sm whitespace-pre-wrap leading-relaxed">{fullContent}</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function Memory() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
-  async function search(e) {
-    e.preventDefault()
-    if (!query.trim()) return
+  useEffect(() => {
+    load('')
+  }, [])
+
+  async function load(q) {
     setLoading(true)
+    setError(null)
     try {
-      const d = await searchMemory(query)
+      const d = await searchMemory(q)
       setResults(d.results || [])
+    } catch (e) {
+      setError(e.message || '搜索失败')
     } finally {
       setLoading(false)
     }
+  }
+
+  async function search(e) {
+    e.preventDefault()
+    load(query)
   }
 
   return (
@@ -38,16 +106,21 @@ export default function Memory() {
         </button>
       </form>
 
+      {loading && results === null && (
+        <p className="text-white/20 text-sm">加载中…</p>
+      )}
+
+      {error && (
+        <p className="text-red-400/50 text-xs">{error}</p>
+      )}
+
       {results !== null && (
         <div className="space-y-3">
           {results.length === 0 && (
             <p className="text-white/20 text-sm">没有找到相关内容</p>
           )}
-          {results.map((r, i) => (
-            <div key={i} className="border border-white/8 rounded px-4 py-3">
-              <p className="text-white/70 text-sm">{r.title || '（无标题）'}</p>
-              <p className="text-white/25 text-xs mt-1">{r.type} · {r.id}</p>
-            </div>
+          {results.map((r) => (
+            <MemoryCard key={r.id} item={r} />
           ))}
         </div>
       )}

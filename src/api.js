@@ -12,13 +12,20 @@ export async function fetchMessageLog(limit = 20) {
   return r.json()
 }
 
-export async function searchMemory(query) {
+export async function searchMemory(query = '', limit = 20) {
+  const params = new URLSearchParams({ q: query, limit: String(limit) })
+  const r = await fetch(`${BASE}/memory/search?${params}`)
+  if (!r.ok) throw new Error('记忆搜索失败')
+  return r.json()
+}
+
+export async function getMemoryPage(pageId) {
   const r = await fetch(`${BASE}/notion/read`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'search', params_json: JSON.stringify({ query, filter: 'page' }) }),
+    body: JSON.stringify({ action: 'get_page', params_json: JSON.stringify({ page_id: pageId }) }),
   })
-  if (!r.ok) throw new Error('记忆搜索失败')
+  if (!r.ok) throw new Error('记忆详情获取失败')
   return r.json()
 }
 
